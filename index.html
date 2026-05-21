@@ -336,6 +336,62 @@
       color: #ff8f99;
     }
 
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(7, 13, 20, 0.52);
+      backdrop-filter: blur(8px);
+      z-index: 20;
+    }
+
+    .modal.is-open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(100%, 460px);
+      padding: 28px;
+      border-radius: 24px;
+      background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+      border: 1px solid var(--line);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+      text-align: center;
+    }
+
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(15, 118, 110, 0.12);
+      color: var(--primary-strong);
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .modal-card h2 {
+      margin: 0 0 10px;
+      font-size: 1.45rem;
+    }
+
+    .modal-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .modal-actions {
+      margin-top: 22px;
+      display: flex;
+      justify-content: center;
+    }
+
     footer {
       padding: 22px 8px 8px;
       color: var(--muted);
@@ -405,7 +461,7 @@
     }
   </style>
 </head>
-<body>
+<body data-theme="dark">
   <main class="page">
     <section class="hero">
       <div class="topbar">
@@ -445,7 +501,7 @@
 
           <div class="field">
             <label for="phone">Número de telefone</label>
-            <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+238 ..." required>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="Ex.: 991 23 45" required>
           </div>
 
           <div class="field">
@@ -515,23 +571,36 @@
     </footer>
   </main>
 
+  <div class="modal" id="success-modal" aria-hidden="true" role="dialog" aria-labelledby="success-title">
+    <div class="modal-card">
+      <div class="modal-icon" aria-hidden="true">✓</div>
+      <h2 id="success-title">Dados enviados com sucesso</h2>
+      <p>
+        Obrigado pela sua colaboração. As suas informações foram registadas com sucesso.
+      </p>
+      <div class="modal-actions">
+        <button class="primary" id="close-modal" type="button">Fechar</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const body = document.body;
     const form = document.getElementById("member-form");
     const successMessage = document.getElementById("success-message");
     const themeToggle = document.getElementById("theme-toggle");
     const themeIcon = document.getElementById("theme-icon");
-    const savedTheme = localStorage.getItem("accta-theme");
+    const successModal = document.getElementById("success-modal");
+    const closeModalButton = document.getElementById("close-modal");
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuI5DnywewLsll0bOwjyhBft7MewGlBxp-B90I_OUzHkDKX8iBSf-YdQWiTy84h9dRJg/exec";
 
     function setTheme(theme) {
       body.setAttribute("data-theme", theme);
-      localStorage.setItem("accta-theme", theme);
       const isDark = theme === "dark";
       themeIcon.textContent = isDark ? "☀" : "◐";
     }
 
-    setTheme(savedTheme || "dark");
+    setTheme("dark");
 
     themeToggle.addEventListener("click", function () {
       const nextTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -544,6 +613,23 @@
       successMessage.innerHTML = "<strong>" + title + "</strong><p>" + message + "</p>";
       successMessage.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
+
+    function openSuccessModal() {
+      successModal.classList.add("is-open");
+      successModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeSuccessModal() {
+      successModal.classList.remove("is-open");
+      successModal.setAttribute("aria-hidden", "true");
+    }
+
+    closeModalButton.addEventListener("click", closeSuccessModal);
+    successModal.addEventListener("click", function (event) {
+      if (event.target === successModal) {
+        closeSuccessModal();
+      }
+    });
 
     form.addEventListener("submit", async function (event) {
       event.preventDefault();
@@ -591,8 +677,9 @@
         showStatus(
           "success",
           "Dados registados com sucesso.",
-          "A submissão foi enviada para o Google Sheets. Pode consultar as respostas diretamente na folha associada."
+          "Obrigado pela sua colaboração. As suas informações foram registadas com sucesso."
         );
+        openSuccessModal();
         form.reset();
       } catch (error) {
         localStorage.setItem("associados-formulario", JSON.stringify(payload));
