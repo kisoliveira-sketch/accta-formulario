@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atualização de Dados dos Associados</title>
+  <style>
+    :root {
+      --bg: #f4efe7;
+      --bg-accent: #e6ddd0;
+      --surface: rgba(255, 255, 255, 0.74);
+      --surface-strong: #ffffff;
+      --text: #1f2933;
+      --muted: #5b6875;
+      --line: rgba(31, 41, 51, 0.12);
+      --primary: #0f766e;
+      --primary-strong: #115e59;
+      --secondary: #cf2432;
+      --shadow: 0 24px 60px rgba(31, 41, 51, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    body[data-theme="dark"] {
+      --bg: #08111a;
+      --bg-accent: #0e1d2b;
+      --surface: rgba(9, 18, 28, 0.76);
+      --surface-strong: #0f1a26;
+      --text: #f2f5f7;
+      --muted: #b4c0cb;
+      --line: rgba(255, 255, 255, 0.1);
+      --primary: #38b2ac;
+      --primary-strong: #8de5dd;
+      --secondary: #ff4d5c;
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 30%),
+        radial-gradient(circle at 85% 15%, rgba(207, 36, 50, 0.14), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(184, 134, 11, 0.12), transparent 24%),
+        linear-gradient(135deg, var(--bg), color-mix(in srgb, var(--bg) 65%, white 35%) 48%, var(--bg-accent));
+      min-height: 100vh;
+      transition: background 0.35s ease, color 0.35s ease;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(10px);
+      opacity: 0.8;
+    }
+
+    body::before {
+      width: 320px;
+      height: 320px;
+      top: 90px;
+      right: -80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(15, 118, 110, 0.18), transparent 68%);
+    }
+
+    body::after {
+      width: 420px;
+      height: 420px;
+      left: -120px;
+      bottom: -120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(207, 36, 50, 0.12), transparent 70%);
+    }
+
+    .page {
+      width: min(960px, calc(100% - 32px));
+      margin: 48px auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      padding: 28px 28px 20px;
+      position: relative;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-mark {
+      width: min(100%, 460px);
+      height: auto;
+      display: block;
+    }
+
+    .brand-mark.dark {
+      display: none;
+    }
+
+    body[data-theme="dark"] .brand-mark.light {
+      display: none;
+    }
+
+    body[data-theme="dark"] .brand-mark.dark {
+      display: block;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      color: var(--primary-strong);
+      font-size: 0.86rem;
+      letter-spacing: 0.02em;
+    }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.68);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 10px 28px rgba(31, 41, 51, 0.1);
+      backdrop-filter: blur(16px);
+    }
+
+    body[data-theme="dark"] .theme-toggle {
+      background: rgba(9, 18, 28, 0.72);
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 1.05;
+      max-width: 12ch;
+    }
+
+    .hero p {
+      max-width: 64ch;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.02rem;
+      line-height: 1.7;
+    }
+
+    .card {
+      backdrop-filter: blur(18px);
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    form {
+      display: grid;
+      gap: 22px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font: inherit;
+      color: var(--text);
+      background: color-mix(in srgb, var(--surface-strong) 90%, transparent);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(15, 118, 110, 0.5);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+      transform: translateY(-1px);
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .hint,
+    .privacy,
+    .success p {
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.6;
+    }
+
+    .section-title {
+      margin: 8px 0 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      padding-top: 6px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(15, 118, 110, 0.24);
+    }
+
+    .secondary {
+      background: transparent;
+      color: var(--primary-strong);
+      border: 1px solid rgba(15, 118, 110, 0.18);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .success {
+      display: none;
+      margin-top: 18px;
+      padding: 18px 20px;
+      border-radius: var(--radius-lg);
+      background: rgba(15, 118, 110, 0.08);
+      border: 1px solid rgba(15, 118, 110, 0.16);
+    }
+
+    .success strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--primary-strong);
+    }
+
+    .status-error {
+      background: rgba(207, 36, 50, 0.08);
+      border-color: rgba(207, 36, 50, 0.18);
+    }
+
+    .status-error strong {
+      color: #b42318;
+    }
+
+    body[data-theme="dark"] .status-error strong {
+      color: #ff8f99;
+    }
+
+    footer {
+      padding: 22px 8px 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        width: min(100% - 20px, 960px);
+        margin: 20px auto 28px;
+      }
+
+      .hero,
+      .card {
+        padding: 20px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .brand-mark {
+        width: min(100%, 320px);
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="topbar">
+        <div class="brand">
+          <img class="brand-mark light" src="./assets/logo-light.png" alt="ACCTA">
+          <img class="brand-mark dark" src="./assets/logo-dark.png" alt="ACCTA">
+        </div>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar modo escuro e claro">
+          <span id="theme-icon" aria-hidden="true">◐</span>
+          <span id="theme-label">Modo escuro</span>
+        </button>
+      </div>
+      <span class="eyebrow">Atualização da base de dados</span>
+      <h1>Formulário de recolha de dados dos associados</h1>
+      <p>
+        Preencha os campos abaixo para atualizar os seus dados pessoais e contactos de redes sociais.
+        As informações serão utilizadas exclusivamente para fins associativos e de comunicação institucional.
+      </p>
+    </section>
+
+    <section class="card">
+      <form id="member-form">
+        <div class="grid">
+          <div class="field full">
+            <label for="fullName">Nome completo</label>
+            <input id="fullName" name="fullName" type="text" autocomplete="name" required>
+          </div>
+
+          <div class="field">
+            <label for="birthDate">Data de nascimento</label>
+            <input id="birthDate" name="birthDate" type="date" required>
+          </div>
+
+          <div class="field">
+            <label for="phone">Número de telefone</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="+238 ..." required>
+          </div>
+
+          <div class="field">
+            <label for="email">Endereço de e-mail</label>
+            <input id="email" name="email" type="email" autocomplete="email" placeholder="nome@exemplo.com" required>
+          </div>
+
+          <div class="field">
+            <label for="linkedin">LinkedIn</label>
+            <input id="linkedin" name="linkedin" type="url" placeholder="https://linkedin.com/in/...">
+          </div>
+        </div>
+
+        <p class="section-title">Redes sociais</p>
+        <p class="hint">Pode inserir links completos ou apenas o identificador/perfil.</p>
+
+        <div class="grid">
+          <div class="field">
+            <label for="facebook">Facebook</label>
+            <input id="facebook" name="facebook" type="text" placeholder="facebook.com/... ou @perfil">
+          </div>
+
+          <div class="field">
+            <label for="instagram">Instagram</label>
+            <input id="instagram" name="instagram" type="text" placeholder="@perfil">
+          </div>
+
+          <div class="field">
+            <label for="twitter">X / Twitter</label>
+            <input id="twitter" name="twitter" type="text" placeholder="@perfil">
+          </div>
+
+          <div class="field">
+            <label for="otherSocial">Outra rede social</label>
+            <input id="otherSocial" name="otherSocial" type="text" placeholder="TikTok, YouTube, website...">
+          </div>
+        </div>
+
+        <div class="field full">
+          <label for="notes">Observações adicionais</label>
+          <textarea id="notes" name="notes" placeholder="Se desejar, adicione alguma observação ou contacto complementar."></textarea>
+        </div>
+
+        <div class="privacy">
+          Ao enviar este formulário, confirma que os dados fornecidos podem ser utilizados pela associação
+          para atualização de registos, comunicação institucional e fortalecimento da presença digital.
+        </div>
+
+        <div class="actions">
+          <button class="primary" type="submit">Enviar dados</button>
+          <button class="secondary" type="reset">Limpar formulário</button>
+        </div>
+      </form>
+
+      <div class="success" id="success-message" aria-live="polite">
+        <strong>Dados registados com sucesso.</strong>
+        <p>
+          Os dados foram enviados com sucesso. Se esta página já estiver ligada ao Google Sheets,
+          a resposta deverá aparecer automaticamente na folha de registo.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      Prazo sugerido para resposta: 30 de maio.
+    </footer>
+  </main>
+
+  <script>
+    const body = document.body;
+    const form = document.getElementById("member-form");
+    const successMessage = document.getElementById("success-message");
+    const themeToggle = document.getElementById("theme-toggle");
+    const themeLabel = document.getElementById("theme-label");
+    const themeIcon = document.getElementById("theme-icon");
+    const savedTheme = localStorage.getItem("accta-theme");
+    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuI5DnywewLsll0bOwjyhBft7MewGlBxp-B90I_OUzHkDKX8iBSf-YdQWiTy84h9dRJg/exec";
+
+    function setTheme(theme) {
+      body.setAttribute("data-theme", theme);
+      localStorage.setItem("accta-theme", theme);
+      const isDark = theme === "dark";
+      themeLabel.textContent = isDark ? "Modo claro" : "Modo escuro";
+      themeIcon.textContent = isDark ? "☀" : "◐";
+    }
+
+    setTheme(savedTheme || (systemPrefersDark ? "dark" : "light"));
+
+    themeToggle.addEventListener("click", function () {
+      const nextTheme = body.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      setTheme(nextTheme);
+    });
+
+    function showStatus(type, title, message) {
+      successMessage.classList.toggle("status-error", type === "error");
+      successMessage.style.display = "block";
+      successMessage.innerHTML = "<strong>" + title + "</strong><p>" + message + "</p>";
+      successMessage.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const payload = {
+        fullName: formData.get("fullName"),
+        birthDate: formData.get("birthDate"),
+        phone: formData.get("phone"),
+        email: formData.get("email"),
+        linkedin: formData.get("linkedin"),
+        facebook: formData.get("facebook"),
+        instagram: formData.get("instagram"),
+        twitter: formData.get("twitter"),
+        otherSocial: formData.get("otherSocial"),
+        notes: formData.get("notes"),
+        submittedAt: new Date().toISOString()
+      };
+
+      if (!GOOGLE_SCRIPT_URL) {
+        localStorage.setItem("associados-formulario", JSON.stringify(payload));
+        showStatus(
+          "error",
+          "Ligação ao Google Sheets ainda não configurada.",
+          "O formulário está pronto, mas falta colar o URL do Google Apps Script na constante GOOGLE_SCRIPT_URL. Para já, os dados desta submissão ficaram guardados apenas neste navegador."
+        );
+        form.reset();
+        return;
+      }
+
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          mode: "cors",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error("Falha no envio.");
+        }
+
+        showStatus(
+          "success",
+          "Dados registados com sucesso.",
+          "A submissão foi enviada para o Google Sheets. Pode consultar as respostas diretamente na folha associada."
+        );
+        form.reset();
+      } catch (error) {
+        localStorage.setItem("associados-formulario", JSON.stringify(payload));
+        showStatus(
+          "error",
+          "Não foi possível enviar para o Google Sheets.",
+          "Houve um problema ao comunicar com o endpoint configurado. Esta submissão foi guardada localmente neste navegador como salvaguarda."
+        );
+      }
+    });
+  </script>
+</body>
+</html>
