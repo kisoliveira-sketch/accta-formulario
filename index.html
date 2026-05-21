@@ -158,9 +158,10 @@
 
     h1 {
       margin: 18px 0 14px;
-      font-size: clamp(2rem, 4vw, 3.4rem);
-      line-height: 1.05;
-      max-width: 12ch;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.12;
+      max-width: 18ch;
+      text-align: left;
     }
 
     .hero p {
@@ -334,6 +335,10 @@
         width: min(100%, 320px);
       }
 
+      h1 {
+        max-width: 100%;
+      }
+
       .grid {
         grid-template-columns: 1fr;
       }
@@ -354,7 +359,7 @@
         </button>
       </div>
       <span class="eyebrow">Atualização da base de dados</span>
-      <h1>Formulário de recolha de dados dos associados</h1>
+      <h1>Formulário de recolha<br>de dados dos associados</h1>
       <p>
         Preencha os campos abaixo para atualizar os seus dados pessoais e contactos de redes sociais.
         As informações serão utilizadas exclusivamente para fins associativos e de comunicação institucional.
